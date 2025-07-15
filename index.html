@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Dodge</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0c0c1e;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background-color: #000;
+            border: 2px solid #5a5a8a;
+            box-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
+            border-radius: 10px;
+        }
+        #login-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #login-box {
+            background: #1a1a3a;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #5a5a8a;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Adds space between inputs and button */
+        }
+        #login-box h1 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        #ip-input, #name-input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #5a5a8a;
+            background: #0c0c1e;
+            color: #fff;
+            font-size: 16px;
+        }
+        #join-button {
+            padding: 12px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #4a4af5;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #join-button:hover {
+            background-color: #6a6aff;
+        }
+        #notifications {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .notification {
+            background-color: rgba(74, 74, 245, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            animation: fadeInOut 5s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay for player to enter their name before joining -->
+    <div id="login-overlay">
+        <div id="login-box">
+            <h1>Cosmic Dodge</h1>
+            <!-- Input for the server IP address -->
+            <input type="text" id="ip-input" placeholder="Host IP Address (e.g. 192.168.1.5)">
+            <input type="text" id="name-input" placeholder="Enter your name" maxlength="15">
+            <button id="join-button">Join Game</button>
+        </div>
+    </div>
+
+    <!-- The main container for the game canvas -->
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+    </div>
+
+    <!-- Container for displaying game notifications -->
+    <div id="notifications"></div>
+
+    <!-- The client-side game logic -->
+    <script src="game.js"></script>
+</body>
+</html>
+

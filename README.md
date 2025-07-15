@@ -1,28 +1,23 @@
 # Cosmic Dodge - Real-time WebSocket Game
 
-Cosmic Dodge is a multiplayer, real-time, browser-based game built with Python `websockets` and `asyncio` on the backend, and HTML/CSS/JavaScript on the frontend.
+A real-time, multiplayer browser game where you pilot a spaceship and dodge a relentless onslaught of asteroids. The last player standing wins! This game is built with Python and WebSockets, perfect for playing with friends over a local network (LAN).
 
-Players control a ship and must dodge a continuous stream of asteroids. The last player standing wins the round.
+## ✨ Features
 
-## Features
-
--   **Real-time Multiplayer:** Play with multiple people in the same game world.
+-   **Real-Time Multiplayer:** Play with multiple people on the same network.
     
--   **Asynchronous Server:** Built on Python's `asyncio` for high-performance handling of many concurrent connections.
+-   **Simple & Fun:** Easy to learn, difficult to master. The objective is simply to survive.
     
--   **Authoritative Server:** All game logic, physics, and state are handled by the server to prevent cheating.
+-   **LAN Party Ready:** Designed to be easily hosted and joined on a local network.
     
--   **Simple & Scalable:** The design is straightforward and can be extended with new features.
-    
--   **Browser-based Client:** No installation required for players, just a modern web browser.
+-   **Round-Based Gameplay:** After a winner is decided, a new round automatically begins after a short cooldown.
     
 
-## Technology Stack
+## 🛠️ Technology Stack
 
--   **Backend:** Python, `websockets`, `asyncio`
+-   **Server:** Python 3 with `asyncio` and the `websockets` library.
     
--   **Frontend:** HTML5 Canvas, JavaScript (ES6+), CSS
-    
+-   **Client:** HTML, CSS, and modern JavaScript (ES6+).
 
 ## How to Run
 
@@ -46,7 +41,7 @@ cd <your-repo-directory>
 Next, it's recommended to create a virtual environment:
 
 ```
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
 ```
@@ -54,41 +49,49 @@ source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 Install the required Python packages:
 
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 ```
 
-### 3. Run the Server
+## 🎮 How to Play
 
-Start the Python WebSocket server:
+### Hosting a Game
 
-```
-python server.py
+The "host" is the person who will run the Python server on their machine.
 
-```
+1.  **Find Your LAN IP Address:** You'll need this so other players can connect to you.
+    
+    -   **On Windows:** Open Command Prompt, type `ipconfig`, and look for the "IPv4 Address".
+        
+    -   **On macOS/Linux:** Open the Terminal, type `ifconfig | grep "inet "`, and find the local IP address (it usually starts with `192.168.` or `10.0.`).
+        
+2.  **Start the Server:** Navigate to the directory containing the game files in your terminal and run the server:
+    
+    ```
+    python3 server.py
+    
+    ```
+    
+    You should see the message: `Server started on ws://0.0.0.0:8765`. The server is now running and waiting for players.
+    
 
-You should see output indicating the server has started:
+### Joining a Game
 
-```
-Starting server on ws://0.0.0.0:8765
+1.  **Open the Game:** The client cannot just open index.html directly in the browser (file:///...) because browsers have security restrictions. You need to serve it via a simple local web server.
 
-```
+Python has a built-in one that is perfect for this. In a new terminal window (leave the game server running), navigate to your project directory and run:
+    ```
+    python3 -m http.server
+    ```
 
-The server is now running and waiting for connections.
-
-### 4. Play the Game
-
-The client is a single HTML file. You cannot just open it directly in the browser (`file:///...`) because browsers have security restrictions. You need to serve it via a simple local web server.
-
-Python has a built-in one that is perfect for this. In a **new terminal window** (leave the game server running), navigate to your project directory and run:
-
-```
-python -m http.server
-
-```
-
-Now, open your web browser and go to:
-
-**http://localhost:8000**
-
-You will see the "Cosmic Dodge" login screen. Enter a name, click "Join," and start playing! Open multiple tabs or windows to simulate multiple players.
+Now, open your web browser and go to: `http://localhost:8000`
+    
+2.  **Enter Details and Join:** You will see a login screen.
+    
+    -   In the **"Host IP Address"** field, enter the LAN IP address of the person hosting the game.
+        
+    -   Enter your name.
+        
+    -   Click **"Join Game"**.
+        
+3.  **Play!** Once joined, use your mouse to move your spaceship around the screen and dodge the falling asteroids. Good luck!
