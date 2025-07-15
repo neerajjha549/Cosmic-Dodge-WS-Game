@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Dodge</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        canvas {
+            background-color: #0f0f1b;
+            border: 2px solid #4a4a8a;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(74, 74, 138, 0.5);
+            cursor: crosshair;
+        }
+        #ui-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        #login-panel, #leaderboard-panel, #info-panel {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #4a4a8a;
+            min-width: 200px;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+            color: #e94560;
+        }
+        input, button {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #4a4a8a;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+        }
+        button {
+            background-color: #e94560;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #f06273;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 5px 0;
+            border-bottom: 1px solid #4a4a8a;
+        }
+        li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Cosmic Dodge 🚀</h1>
+        <div id="ui-container">
+            <div id="login-panel">
+                <h2>Join Game</h2>
+                <input type="text" id="playerName" placeholder="Enter your name">
+                <button id="joinButton">Join</button>
+            </div>
+            <canvas id="gameCanvas" width="800" height="600" style="display: none;"></canvas>
+            <div id="leaderboard-panel" style="display: none;">
+                <h2>Players</h2>
+                <ul id="playerList"></ul>
+            </div>
+             <div id="info-panel" style="display: none;">
+                <h2>Game Info</h2>
+                <p id="gameStatus">Status: Waiting</p>
+                <p id="gameWinner">Winner: None</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const loginPanel = document.getElementById('login-panel');
+        const leaderboardPanel = document.getElementById('leaderboard-panel');
+        const infoPanel = document.getElementById('info-panel');
+        const joinButton = document.getElementById('joinButton');
+        const playerNameInput = document.getElementById('playerName');
+        const playerList = document.getElementById('playerList');
+        const gameStatusElem = document.getElementById('gameStatus');
+        const gameWinnerElem = document.getElementById('gameWinner');
+
+        let ws;
+        let myPlayerId = null;
+        let mousePosition = [canvas.width / 2, canvas.height / 2];
+
+        // --- WebSocket Connection ---
+        function connect() {
+            // Use wss:// for secure connections in production
+            const wsUrl = `ws://${window.location.hostname}:8765`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('Connected to server');
+                const playerName = playerNameInput.value || 'Anonymous';
+                ws.send(JSON.stringify({ type: 'join', name: playerName }));
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'welcome') {
+                    myPlayerId = data.player_id;
+                    console.log(`Received welcome. My ID is ${myPlayerId}`);
+                } else if (data.type === 'game_state') {
+                    requestAnimationFrame(() => draw(data));
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from server. Attempting to reconnect...');
+                setTimeout(connect, 3000); // Reconnect after 3 seconds
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+                ws.close();
+            };
+        }
+
+        joinButton.addEventListener('click', () => {
+            loginPanel.style.display = 'none';
+            canvas.style.display = 'block';
+            leaderboardPanel.style.display = 'block';
+            infoPanel.style.display = 'block';
+            connect();
+        });
+
+        // --- Drawing Logic ---
+        function draw(state) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw asteroids
+            state.asteroids.forEach(asteroid => {
+                ctx.fillStyle = '#9a9a9a';
+                ctx.beginPath();
+                ctx.arc(asteroid.pos[0], asteroid.pos[1], 20, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw players
+            Object.values(state.players).forEach(player => {
+                if (!player.alive) return;
+                ctx.fillStyle = player.color;
+                ctx.beginPath();
+                ctx.arc(player.pos[0], player.pos[1], 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.fillText(player.name, player.pos[0], player.pos[1] - 20);
+            });
+
+            // Update UI
+            updateUI(state);
+        }
+        
+        function updateUI(state) {
+            // Update leaderboard
+            playerList.innerHTML = '';
+            Object.values(state.players).forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = `${player.name} - ${player.alive ? 'Alive' : '💀'}`;
+                li.style.color = player.alive ? player.color : '#666';
+                playerList.appendChild(li);
+            });
+
+            // Update game info panel
+            const status = state.game_info.status;
+            if (status === 'waiting') {
+                gameStatusElem.textContent = `Round starts in: ${state.game_info.round_start_timer}`;
+            } else if (status === 'in_progress') {
+                gameStatusElem.textContent = 'Round in Progress!';
+            } else if (status === 'finished') {
+                gameStatusElem.textContent = 'Round Over!';
+            }
+            gameWinnerElem.textContent = `Winner: ${state.game_info.winner || 'None'}`;
+        }
+
+        // --- Input Handling ---
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePosition = [event.clientX - rect.left, event.clientY - rect.top];
+        });
+
+        // Send input to server periodically
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'input', mouse_pos: mousePosition }));
+            }
+        }, 1000 / 30); // 30 times per second
+
+    </script>
+</body>
+</html>
